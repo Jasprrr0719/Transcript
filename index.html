@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meeting Transkription</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0e10;
+    --bg-elev: #16161a;
+    --bg-card: #1c1c21;
+    --border: #2a2a32;
+    --text: #ededf0;
+    --text-dim: #8a8a96;
+    --accent: #d4ff3a;
+    --accent-warm: #ff7a59;
+    --red: #ff4d5e;
+    --green: #3ddc97;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(circle at 20% 10%, rgba(212, 255, 58, 0.08), transparent 40%),
+      radial-gradient(circle at 80% 90%, rgba(255, 122, 89, 0.06), transparent 40%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 24px 80px;
+  }
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 48px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+  }
+
+  .brand-mark {
+    width: 14px;
+    height: 14px;
+    background: var(--accent);
+    border-radius: 2px;
+    transform: translateY(2px);
+  }
+
+  .brand-mark.recording {
+    background: var(--red);
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: translateY(2px) scale(1); }
+    50% { opacity: 0.5; transform: translateY(2px) scale(1.3); }
+  }
+
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 800;
+    font-size: clamp(28px, 4vw, 44px);
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--accent);
+    font-weight: 400;
+  }
+
+  .subtitle {
+    color: var(--text-dim);
+    font-size: 13px;
+    margin-top: 8px;
+    letter-spacing: 0.02em;
+  }
+
+  .lang-toggle {
+    display: flex;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 4px;
+  }
+
+  .lang-toggle button {
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    padding: 8px 18px;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    border-radius: 999px;
+    transition: all 0.2s ease;
+  }
+
+  .lang-toggle button.active {
+    background: var(--accent);
+    color: #0e0e10;
+  }
+
+  .controls {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 32px;
+    padding: 20px;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    background: var(--bg-card);
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 12px 20px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn:hover:not(:disabled) {
+    border-color: var(--text-dim);
+    transform: translateY(-1px);
+  }
+
+  .btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #0e0e10;
+    border-color: var(--accent);
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    background: #b8e030;
+    border-color: #b8e030;
+  }
+
+  .btn-danger {
+    background: var(--red);
+    color: white;
+    border-color: var(--red);
+  }
+
+  .btn-danger:hover:not(:disabled) {
+    background: #e63d4e;
+    border-color: #e63d4e;
+  }
+
+  .btn-ghost {
+    background: transparent;
+  }
+
+  .status {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--text-dim);
+    font-size: 12px;
+  }
+
+  .timer {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--text);
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .transcript-area {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    min-height: 400px;
+    position: relative;
+  }
+
+  .transcript-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 16px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .transcript-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--text-dim);
+  }
+
+  .word-count {
+    font-size: 11px;
+    color: var(--text-dim);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .transcript {
+    font-family: 'Fraunces', serif;
+    font-size: 18px;
+    line-height: 1.75;
+    color: var(--text);
+  }
+
+  .transcript-entry {
+    margin-bottom: 20px;
+    padding-left: 80px;
+    position: relative;
+    animation: slideIn 0.3s ease;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-8px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .timestamp {
+    position: absolute;
+    left: 0;
+    top: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.05em;
+  }
+
+  .interim {
+    color: var(--text-dim);
+    font-style: italic;
+    padding-left: 80px;
+    position: relative;
+  }
+
+  .interim::before {
+    content: '';
+    position: absolute;
+    left: 60px;
+    top: 12px;
+    width: 6px;
+    height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: blink 1s ease-in-out infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-dim);
+  }
+
+  .empty-state-icon {
+    font-size: 32px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+  }
+
+  .empty-state p {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 16px;
+  }
+
+  .browser-warning {
+    background: rgba(255, 122, 89, 0.1);
+    border: 1px solid var(--accent-warm);
+    color: var(--accent-warm);
+    padding: 16px 20px;
+    border-radius: 10px;
+    margin-bottom: 24px;
+    font-size: 13px;
+    display: none;
+  }
+
+  .browser-warning.show { display: block; }
+
+  footer {
+    margin-top: 32px;
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 11px;
+    letter-spacing: 0.05em;
+  }
+
+  footer kbd {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-family: inherit;
+    font-size: 10px;
+  }
+
+  @media (max-width: 600px) {
+    .controls { flex-direction: column; align-items: stretch; }
+    .status { margin-left: 0; justify-content: space-between; }
+    .btn { justify-content: center; }
+    .transcript-entry, .interim { padding-left: 0; padding-top: 22px; }
+    .timestamp { top: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div>
+      <div class="brand">
+        <div class="brand-mark" id="brandMark"></div>
+        <h1>Meeting <em>Transkription</em></h1>
+      </div>
+      <p class="subtitle">Live-Spracherkennung im Browser · keine Daten verlassen dein Gerät</p>
+    </div>
+    <div class="lang-toggle">
+      <button data-lang="de-DE" class="active">DE</button>
+      <button data-lang="en-US">EN</button>
+    </div>
+  </header>
+
+  <div class="browser-warning" id="browserWarning">
+    ⚠️ Dein Browser unterstützt die Web Speech API nicht. Bitte nutze <strong>Chrome</strong> oder <strong>Edge</strong>.
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-primary" id="startBtn">
+      ● Aufnahme starten
+    </button>
+    <button class="btn btn-danger" id="stopBtn" disabled>
+      ■ Stoppen
+    </button>
+    <button class="btn btn-ghost" id="clearBtn">
+      Löschen
+    </button>
+    <button class="btn btn-ghost" id="exportTxtBtn" disabled>
+      ↓ .txt
+    </button>
+    <button class="btn btn-ghost" id="exportMdBtn" disabled>
+      ↓ .md
+    </button>
+    <div class="status">
+      <span class="timer" id="timer">00:00:00</span>
+      <span id="statusText">Bereit</span>
+    </div>
+  </div>
+
+  <div class="transcript-area">
+    <div class="transcript-header">
+      <span class="transcript-label">— Transkript</span>
+      <span class="word-count"><span id="wordCount">0</span> Wörter</span>
+    </div>
+    <div class="transcript" id="transcript">
+      <div class="empty-state" id="emptyState">
+        <div class="empty-state-icon">◌</div>
+        <p>Drücke "Aufnahme starten" und sprich los.</p>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Tipp: <kbd>Leertaste</kbd> startet/stoppt · Erlaube den Mikrofon-Zugriff im Browser
+  </footer>
+
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  const startBtn = document.getElementById('startBtn');
+  const stopBtn = document.getElementById('stopBtn');
+  const clearBtn = document.getElementById('clearBtn');
+  const exportTxtBtn = document.getElementById('exportTxtBtn');
+  const exportMdBtn = document.getElementById('exportMdBtn');
+  const transcriptDiv = document.getElementById('transcript');
+  const emptyState = document.getElementById('emptyState');
+  const statusText = document.getElementById('statusText');
+  const timerEl = document.getElementById('timer');
+  const wordCountEl = document.getElementById('wordCount');
+  const brandMark = document.getElementById('brandMark');
+  const browserWarning = document.getElementById('browserWarning');
+  const langButtons = document.querySelectorAll('.lang-toggle button');
+
+  // Browser-Check
+  if (!SpeechRecognition) {
+    browserWarning.classList.add('show');
+    startBtn.disabled = true;
+    return;
+  }
+
+  let recognition = null;
+  let isRecording = false;
+  let currentLang = 'de-DE';
+  let entries = []; // { time, text, timestamp }
+  let interimEl = null;
+  let startTime = null;
+  let timerInterval = null;
+  let recordingStartedAt = null;
+
+  // Sprache umschalten
+  langButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (isRecording) return; // während Aufnahme nicht wechseln
+      langButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentLang = btn.dataset.lang;
+    });
+  });
+
+  function formatDuration(ms) {
+    const totalSec = Math.floor(ms / 1000);
+    const h = String(Math.floor(totalSec / 3600)).padStart(2, '0');
+    const m = String(Math.floor((totalSec % 3600) / 60)).padStart(2, '0');
+    const s = String(totalSec % 60).padStart(2, '0');
+    return `${h}:${m}:${s}`;
+  }
+
+  function formatTimestamp(ms) {
+    const totalSec = Math.floor(ms / 1000);
+    const m = String(Math.floor(totalSec / 60)).padStart(2, '0');
+    const s = String(totalSec % 60).padStart(2, '0');
+    return `${m}:${s}`;
+  }
+
+  function updateTimer() {
+    if (startTime) {
+      timerEl.textContent = formatDuration(Date.now() - startTime);
+    }
+  }
+
+  function updateWordCount() {
+    const allText = entries.map(e => e.text).join(' ');
+    const count = allText.trim() ? allText.trim().split(/\s+/).length : 0;
+    wordCountEl.textContent = count;
+  }
+
+  function renderEntry(entry) {
+    const div = document.createElement('div');
+    div.className = 'transcript-entry';
+    div.innerHTML = `<span class="timestamp">${entry.timestamp}</span>${escapeHtml(entry.text)}`;
+    return div;
+  }
+
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  function setupRecognition() {
+    recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = currentLang;
+
+    recognition.onresult = (event) => {
+      let interimText = '';
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const result = event.results[i];
+        const transcript = result[0].transcript.trim();
+
+        if (result.isFinal && transcript) {
+          const elapsed = Date.now() - recordingStartedAt;
+          const entry = {
+            text: transcript.charAt(0).toUpperCase() + transcript.slice(1),
+            timestamp: formatTimestamp(elapsed),
+            elapsedMs: elapsed
+          };
+          entries.push(entry);
+
+          if (emptyState && emptyState.parentNode) emptyState.remove();
+          if (interimEl) { interimEl.remove(); interimEl = null; }
+
+          transcriptDiv.appendChild(renderEntry(entry));
+          transcriptDiv.scrollTop = transcriptDiv.scrollHeight;
+          window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+
+          updateWordCount();
+          updateExportButtons();
+        } else {
+          interimText += transcript + ' ';
+        }
+      }
+
+      // interim live anzeigen
+      if (interimText.trim()) {
+        if (!interimEl) {
+          interimEl = document.createElement('div');
+          interimEl.className = 'interim';
+          if (emptyState && emptyState.parentNode) emptyState.remove();
+          transcriptDiv.appendChild(interimEl);
+        }
+        interimEl.textContent = interimText.trim();
+      }
+    };
+
+    recognition.onerror = (event) => {
+      console.error('Speech recognition error:', event.error);
+      if (event.error === 'no-speech') {
+        statusText.textContent = 'Keine Sprache erkannt...';
+      } else if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+        statusText.textContent = 'Mikrofon-Zugriff verweigert';
+        stopRecording();
+      } else if (event.error === 'network') {
+        statusText.textContent = 'Netzwerkfehler';
+      } else {
+        statusText.textContent = `Fehler: ${event.error}`;
+      }
+    };
+
+    recognition.onend = () => {
+      // Auto-Restart, falls noch im Recording-Modus (Browser stoppt manchmal nach ~60s)
+      if (isRecording) {
+        try {
+          recognition.start();
+        } catch (e) {
+          console.warn('Restart failed:', e);
+        }
+      }
+    };
+  }
+
+  function startRecording() {
+    if (isRecording) return;
+
+    setupRecognition();
+    try {
+      recognition.start();
+    } catch (e) {
+      console.error('Could not start:', e);
+      statusText.textContent = 'Konnte nicht starten';
+      return;
+    }
+
+    isRecording = true;
+    recordingStartedAt = Date.now();
+    startTime = Date.now();
+    timerInterval = setInterval(updateTimer, 250);
+
+    startBtn.disabled = true;
+    stopBtn.disabled = false;
+    langButtons.forEach(b => b.style.opacity = '0.5');
+    brandMark.classList.add('recording');
+    statusText.textContent = `● Aufnahme läuft (${currentLang === 'de-DE' ? 'Deutsch' : 'Englisch'})`;
+  }
+
+  function stopRecording() {
+    if (!isRecording) return;
+    isRecording = false;
+
+    if (recognition) {
+      try { recognition.stop(); } catch (e) {}
+    }
+
+    clearInterval(timerInterval);
+    startBtn.disabled = false;
+    stopBtn.disabled = true;
+    langButtons.forEach(b => b.style.opacity = '1');
+    brandMark.classList.remove('recording');
+    statusText.textContent = 'Gestoppt';
+
+    if (interimEl) { interimEl.remove(); interimEl = null; }
+    updateExportButtons();
+  }
+
+  function clearTranscript() {
+    if (isRecording) {
+      if (!confirm('Aufnahme läuft. Wirklich alles löschen?')) return;
+      stopRecording();
+    }
+    entries = [];
+    transcriptDiv.innerHTML = '';
+    transcriptDiv.appendChild(emptyState);
+    timerEl.textContent = '00:00:00';
+    startTime = null;
+    statusText.textContent = 'Bereit';
+    updateWordCount();
+    updateExportButtons();
+  }
+
+  function updateExportButtons() {
+    const hasContent = entries.length > 0;
+    exportTxtBtn.disabled = !hasContent;
+    exportMdBtn.disabled = !hasContent;
+  }
+
+  function buildTxt() {
+    const date = new Date().toLocaleString('de-DE');
+    let out = `Meeting Transkription\n`;
+    out += `${date}\n`;
+    out += `Sprache: ${currentLang}\n`;
+    out += `${'='.repeat(50)}\n\n`;
+    entries.forEach(e => {
+      out += `[${e.timestamp}] ${e.text}\n\n`;
+    });
+    return out;
+  }
+
+  function buildMd() {
+    const date = new Date().toLocaleString('de-DE');
+    let out = `# Meeting Transkription\n\n`;
+    out += `**Datum:** ${date}  \n`;
+    out += `**Sprache:** ${currentLang}  \n`;
+    out += `**Dauer:** ${entries.length ? entries[entries.length-1].timestamp : '–'}\n\n`;
+    out += `---\n\n`;
+    entries.forEach(e => {
+      out += `**[${e.timestamp}]** ${e.text}\n\n`;
+    });
+    return out;
+  }
+
+  function download(content, filename, mime) {
+    const blob = new Blob([content], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function makeFilename(ext) {
+    const d = new Date();
+    const stamp = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}_${String(d.getHours()).padStart(2,'0')}${String(d.getMinutes()).padStart(2,'0')}`;
+    return `meeting_${stamp}.${ext}`;
+  }
+
+  // Event Listener
+  startBtn.addEventListener('click', startRecording);
+  stopBtn.addEventListener('click', stopRecording);
+  clearBtn.addEventListener('click', clearTranscript);
+  exportTxtBtn.addEventListener('click', () => download(buildTxt(), makeFilename('txt'), 'text/plain'));
+  exportMdBtn.addEventListener('click', () => download(buildMd(), makeFilename('md'), 'text/markdown'));
+
+  // Leertaste = Toggle
+  document.addEventListener('keydown', (e) => {
+    if (e.code === 'Space' && e.target === document.body) {
+      e.preventDefault();
+      isRecording ? stopRecording() : startRecording();
+    }
+  });
+
+  // Warnen, wenn Tab geschlossen wird mit ungespeichertem Transkript
+  window.addEventListener('beforeunload', (e) => {
+    if (entries.length > 0 && !isRecording) {
+      e.preventDefault();
+      e.returnValue = '';
+    }
+  });
+
+})();
+</script>
+</body>
+</html>
